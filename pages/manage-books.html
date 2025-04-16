@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý sách - Simple Book Rental</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+  <style>
+    .book-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .book-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+    }
+
+    .book-table th, .book-table td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .book-table th {
+      background-color: var(--light-color);
+      font-weight: 500;
+    }
+
+    .book-table tr:hover {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 500;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .description-cell {
+      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <nav class="navbar">
+        <a href="../index.html" class="logo">Simple Book Rental</a>
+
+        <ul class="nav-links">
+          <li><a href="../index.html">Trang chủ</a></li>
+          <li><a href="books.html">Sách</a></li>
+          <li><a href="about.html">Giới thiệu</a></li>
+          <li><a href="contact.html">Liên hệ</a></li>
+        </ul>
+
+        <div class="auth-buttons">
+          <!-- Will be populated by auth.js, but adding fallback buttons -->
+          <a href="profile.html" class="btn btn-outline">Hồ sơ</a>
+          <a href="manage-books.html" class="btn btn-outline">Quản lý sách</a>
+          <button id="logout-btn" class="btn btn-primary">Đăng xuất</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Manage Books Section -->
+  <section class="container">
+    <h1 class="text-center mt-5 mb-4">Quản lý sách</h1>
+
+    <div id="alert-container"></div>
+
+    <div class="mb-4">
+      <button id="add-book-btn" class="btn btn-primary">Thêm sách mới</button>
+    </div>
+
+    <div class="books-management">
+      <table class="book-table">
+        <thead>
+          <tr>
+            <th>Tiêu đề</th>
+            <th>Tác giả</th>
+            <th>ISBN</th>
+            <th>Mô tả</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="books-table-body">
+          <!-- Books will be loaded dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Add/Edit Book Modal -->
+  <div id="book-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title">Thêm sách mới</h2>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+
+      <form id="book-form">
+        <input type="hidden" id="book-id">
+
+        <div class="form-group">
+          <label for="title" class="form-label">Tiêu đề</label>
+          <input type="text" id="title" class="form-input" placeholder="Nhập tiêu đề sách" required>
+        </div>
+
+        <div class="form-group">
+          <label for="author" class="form-label">Tác giả</label>
+          <input type="text" id="author" class="form-input" placeholder="Nhập tên tác giả" required>
+        </div>
+
+        <div class="form-group">
+          <label for="isbn" class="form-label">ISBN</label>
+          <input type="text" id="isbn" class="form-input" placeholder="Nhập mã ISBN" required>
+        </div>
+
+        <div class="form-group">
+          <label for="description" class="form-label">Mô tả</label>
+          <textarea id="description" class="form-input" rows="4" placeholder="Nhập mô tả sách"></textarea>
+        </div>
+
+        <button type="submit" class="form-submit" id="form-submit-btn">Lưu sách</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div id="confirm-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Xác nhận xóa</h2>
+        <button class="modal-close" id="confirm-modal-close">&times;</button>
+      </div>
+
+      <p>Bạn có chắc chắn muốn xóa sách này không?</p>
+
+      <div class="mt-4 text-center">
+        <button class="btn btn-outline" id="cancel-delete-btn">Hủy</button>
+        <button class="btn btn-danger" id="confirm-delete-btn">Xóa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3 class="footer-title">Simple Book Rental</h3>
+          <p>Dịch vụ thuê sách trực tuyến hàng đầu Việt Nam.</p>
+        </div>
+
+        <div class="footer-section">
+          <h3 class="footer-title">Liên kết</h3>
+          <ul class="footer-links">
+            <li><a href="../index.html">Trang chủ</a></li>
+            <li><a href="books.html">Sách</a></li>
+            <li><a href="about.html">Giới thiệu</a></li>
+            <li><a href="contact.html">Liên hệ</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h3 class="footer-title">Liên hệ</h3>
+          <ul class="footer-links">
+            <li>Email: info@simplebookrental.com</li>
+            <li>Điện thoại: +84 123 456 789</li>
+            <li>Địa chỉ: 123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2023 Simple Book Rental. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script type="module">
+    import { BookAPI } from '../js/api.js';
+    import { showAlert, formatDate } from '../js/utils.js';
+    import { requireAuth, getCurrentUser, isLoggedIn } from '../js/auth.js';
+
+    // Require authentication for this page
+    requireAuth();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const booksTableBody = document.getElementById('books-table-body');
+      const alertContainer = document.getElementById('alert-container');
+      const addBookBtn = document.getElementById('add-book-btn');
+      const bookModal = document.getElementById('book-modal');
+      const modalTitle = document.getElementById('modal-title');
+      const modalClose = document.getElementById('modal-close');
+      const bookForm = document.getElementById('book-form');
+      const bookIdInput = document.getElementById('book-id');
+      const titleInput = document.getElementById('title');
+      const authorInput = document.getElementById('author');
+      const isbnInput = document.getElementById('isbn');
+      const descriptionInput = document.getElementById('description');
+      const formSubmitBtn = document.getElementById('form-submit-btn');
+      const confirmModal = document.getElementById('confirm-modal');
+      const confirmModalClose = document.getElementById('confirm-modal-close');
+      const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+      const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+
+      // Current book ID to delete
+      let currentDeleteId = null;
+
+      // Load books
+      async function loadBooks() {
+        try {
+          booksTableBody.innerHTML = '<tr><td colspan="5" class="text-center">Đang tải...</td></tr>';
+
+          const response = await BookAPI.getAllBooks();
+          const books = response.data;
+
+          booksTableBody.innerHTML = '';
+
+          if (books.length === 0) {
+            booksTableBody.innerHTML = '<tr><td colspan="5" class="text-center">Không có sách nào.</td></tr>';
+            return;
+          }
+
+          // Create and append book rows
+          books.forEach(book => {
+            const row = document.createElement('tr');
+
+            row.innerHTML = `
+              <td>${book.title}</td>
+              <td>${book.author}</td>
+              <td>${book.isbn}</td>
+              <td class="description-cell">${book.description || 'Không có mô tả'}</td>
+              <td class="book-actions">
+                <button class="btn btn-outline edit-book-btn" data-id="${book.id}">Sửa</button>
+                <button class="btn btn-danger delete-book-btn" data-id="${book.id}">Xóa</button>
+              </td>
+            `;
+
+            booksTableBody.appendChild(row);
+          });
+
+          // Add event listeners to edit and delete buttons
+          document.querySelectorAll('.edit-book-btn').forEach(btn => {
+            btn.addEventListener('click', () => editBook(btn.dataset.id));
+          });
+
+          document.querySelectorAll('.delete-book-btn').forEach(btn => {
+            btn.addEventListener('click', () => showDeleteConfirmation(btn.dataset.id));
+          });
+        } catch (error) {
+          console.error('Error loading books:', error);
+          showAlert('Đã xảy ra lỗi khi tải sách. Vui lòng thử lại sau.', 'danger', alertContainer);
+        }
+      }
+
+      // Show add book modal
+      function showAddBookModal() {
+        // Reset form
+        bookForm.reset();
+        bookIdInput.value = '';
+
+        // Update modal title and button text
+        modalTitle.textContent = 'Thêm sách mới';
+        formSubmitBtn.textContent = 'Thêm sách';
+
+        // Show modal
+        bookModal.classList.add('active');
+      }
+
+      // Show edit book modal
+      async function editBook(id) {
+        try {
+          // Get book details
+          const response = await BookAPI.getBookById(id);
+          const book = response.data;
+
+          // Populate form
+          bookIdInput.value = book.id;
+          titleInput.value = book.title;
+          authorInput.value = book.author;
+          isbnInput.value = book.isbn;
+          descriptionInput.value = book.description || '';
+
+          // Store the current user_id in a data attribute
+          bookForm.dataset.userId = book.user_id || '';
+
+          // Update modal title and button text
+          modalTitle.textContent = 'Chỉnh sửa sách';
+          formSubmitBtn.textContent = 'Cập nhật sách';
+
+          // Show modal
+          bookModal.classList.add('active');
+        } catch (error) {
+          console.error('Error loading book details:', error);
+          showAlert('Đã xảy ra lỗi khi tải thông tin sách. Vui lòng thử lại sau.', 'danger', alertContainer);
+        }
+      }
+
+      // Show delete confirmation modal
+      function showDeleteConfirmation(id) {
+        currentDeleteId = id;
+        confirmModal.classList.add('active');
+      }
+
+      // Handle form submission
+      async function handleFormSubmit(e) {
+        e.preventDefault();
+
+        const bookId = bookIdInput.value;
+
+        // Get current user
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+          showAlert('Bạn cần đăng nhập để thực hiện thao tác này.', 'danger', alertContainer);
+          return;
+        }
+
+        const bookData = {
+          title: titleInput.value,
+          author: authorInput.value,
+          isbn: isbnInput.value,
+          description: descriptionInput.value,
+          user_id: currentUser.id // Thêm user_id vào dữ liệu sách
+        };
+
+        try {
+          // Disable form submission
+          formSubmitBtn.disabled = true;
+          formSubmitBtn.textContent = 'Đang lưu...';
+
+          if (bookId) {
+            // Update existing book
+            // Nếu đang cập nhật sách, sử dụng user_id đã lưu trước đó
+            if (bookForm.dataset.userId) {
+              bookData.user_id = bookForm.dataset.userId;
+            }
+            await BookAPI.updateBook(bookId, bookData);
+            showAlert('Cập nhật sách thành công!', 'success', alertContainer);
+          } else {
+            // Create new book
+            await BookAPI.createBook(bookData);
+            showAlert('Thêm sách thành công!', 'success', alertContainer);
+          }
+
+          // Close modal
+          bookModal.classList.remove('active');
+
+          // Reload books
+          loadBooks();
+        } catch (error) {
+          console.error('Error saving book:', error);
+          showAlert(error.message || 'Đã xảy ra lỗi khi lưu sách. Vui lòng thử lại sau.', 'danger', alertContainer);
+        } finally {
+          // Re-enable form submission
+          formSubmitBtn.disabled = false;
+          formSubmitBtn.textContent = bookId ? 'Cập nhật sách' : 'Thêm sách';
+        }
+      }
+
+      // Handle book deletion
+      async function deleteBook() {
+        if (!currentDeleteId) return;
+
+        try {
+          // Disable delete button
+          confirmDeleteBtn.disabled = true;
+          confirmDeleteBtn.textContent = 'Đang xóa...';
+
+          // Delete book
+          await BookAPI.deleteBook(currentDeleteId);
+
+          // Close modal
+          confirmModal.classList.remove('active');
+
+          // Show success message
+          showAlert('Xóa sách thành công!', 'success', alertContainer);
+
+          // Reload books
+          loadBooks();
+        } catch (error) {
+          console.error('Error deleting book:', error);
+          showAlert(error.message || 'Đã xảy ra lỗi khi xóa sách. Vui lòng thử lại sau.', 'danger', alertContainer);
+        } finally {
+          // Re-enable delete button
+          confirmDeleteBtn.disabled = false;
+          confirmDeleteBtn.textContent = 'Xóa';
+
+          // Reset current delete ID
+          currentDeleteId = null;
+        }
+      }
+
+      // Event listeners
+      addBookBtn.addEventListener('click', showAddBookModal);
+
+      modalClose.addEventListener('click', () => {
+        bookModal.classList.remove('active');
+      });
+
+      confirmModalClose.addEventListener('click', () => {
+        confirmModal.classList.remove('active');
+        currentDeleteId = null;
+      });
+
+      cancelDeleteBtn.addEventListener('click', () => {
+        confirmModal.classList.remove('active');
+        currentDeleteId = null;
+      });
+
+      confirmDeleteBtn.addEventListener('click', deleteBook);
+
+      bookForm.addEventListener('submit', handleFormSubmit);
+
+      // Close modals when clicking outside
+      window.addEventListener('click', (e) => {
+        if (e.target === bookModal) {
+          bookModal.classList.remove('active');
+        }
+
+        if (e.target === confirmModal) {
+          confirmModal.classList.remove('active');
+          currentDeleteId = null;
+        }
+      });
+
+      // Add event listener to logout button
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        try {
+          const { UserAPI } = await import('../js/api.js');
+          await UserAPI.logout();
+          window.location.href = '../index.html';
+        } catch (error) {
+          console.error('Logout Error:', error);
+        }
+      });
+
+      // Load books on page load
+      loadBooks();
+    });
+  </script>
+</body>
+</html>

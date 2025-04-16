@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danh sách sách - Simple Book Rental</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <nav class="navbar">
+        <a href="../index.html" class="logo">Simple Book Rental</a>
+
+        <ul class="nav-links">
+          <li><a href="../index.html">Trang chủ</a></li>
+          <li><a href="books.html">Sách</a></li>
+          <li><a href="about.html">Giới thiệu</a></li>
+          <li><a href="contact.html">Liên hệ</a></li>
+        </ul>
+
+        <div class="auth-buttons">
+          <!-- Will be populated by auth.js, but adding fallback buttons -->
+          <a href="login.html" class="btn btn-outline">Đăng nhập</a>
+          <a href="register.html" class="btn btn-primary">Đăng ký</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Books Section -->
+  <section class="container">
+    <h1 class="text-center mt-5 mb-4">Danh sách sách</h1>
+
+    <!-- Search and Filter -->
+    <div class="search-filter mb-4">
+      <form id="search-form" class="search-form">
+        <input type="text" id="search-input" placeholder="Tìm kiếm sách..." required>
+        <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+      </form>
+
+      <div class="filter-container">
+        <select id="sort-select" class="form-input">
+          <option value="title_asc">Tên sách (A-Z)</option>
+          <option value="title_desc">Tên sách (Z-A)</option>
+          <option value="author_asc">Tác giả (A-Z)</option>
+          <option value="author_desc">Tác giả (Z-A)</option>
+          <option value="newest">Mới nhất</option>
+          <option value="oldest">Cũ nhất</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="alert-container"></div>
+
+    <div class="books-container">
+      <!-- Books will be loaded dynamically -->
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination mt-4 mb-5">
+      <button id="prev-page" class="btn btn-outline" disabled>Trang trước</button>
+      <span id="page-info">Trang 1</span>
+      <button id="next-page" class="btn btn-outline">Trang sau</button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3 class="footer-title">Simple Book Rental</h3>
+          <p>Dịch vụ thuê sách trực tuyến hàng đầu Việt Nam.</p>
+        </div>
+
+        <div class="footer-section">
+          <h3 class="footer-title">Liên kết</h3>
+          <ul class="footer-links">
+            <li><a href="../index.html">Trang chủ</a></li>
+            <li><a href="books.html">Sách</a></li>
+            <li><a href="about.html">Giới thiệu</a></li>
+            <li><a href="contact.html">Liên hệ</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h3 class="footer-title">Liên hệ</h3>
+          <ul class="footer-links">
+            <li>Email: info@simplebookrental.com</li>
+            <li>Điện thoại: +84 123 456 789</li>
+            <li>Địa chỉ: 123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2023 Simple Book Rental. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script type="module">
+    import { BookAPI } from '../js/api.js';
+    import { showLoading, createBookCard, showAlert, getUrlParam, debounce } from '../js/utils.js';
+    import { initAuth } from '../js/auth.js';
+
+    // Initialize authentication
+    initAuth();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const booksContainer = document.querySelector('.books-container');
+      const alertContainer = document.getElementById('alert-container');
+      const searchForm = document.getElementById('search-form');
+      const searchInput = document.getElementById('search-input');
+      const sortSelect = document.getElementById('sort-select');
+      const prevPageBtn = document.getElementById('prev-page');
+      const nextPageBtn = document.getElementById('next-page');
+      const pageInfo = document.getElementById('page-info');
+
+      // State variables
+      let currentPage = 1;
+      let totalPages = 1;
+      let allBooks = [];
+      let filteredBooks = [];
+      const booksPerPage = 8;
+
+      // Load books
+      async function loadBooks() {
+        try {
+          showLoading(booksContainer);
+
+          const response = await BookAPI.getAllBooks();
+          allBooks = response.data;
+
+          // Apply search filter if query parameter exists
+          const searchQuery = getUrlParam('q');
+          if (searchQuery) {
+            searchInput.value = searchQuery;
+            filteredBooks = filterBooks(searchQuery);
+          } else {
+            filteredBooks = [...allBooks];
+          }
+
+          // Apply sort
+          sortBooks(sortSelect.value);
+
+          // Update pagination
+          updatePagination();
+
+          // Display books
+          displayBooks();
+        } catch (error) {
+          console.error('Error loading books:', error);
+          showAlert('Đã xảy ra lỗi khi tải sách. Vui lòng thử lại sau.', 'danger', alertContainer);
+        }
+      }
+
+      // Filter books by search query
+      function filterBooks(query) {
+        if (!query) return [...allBooks];
+
+        const lowerQuery = query.toLowerCase();
+        return allBooks.filter(book =>
+          book.title.toLowerCase().includes(lowerQuery) ||
+          book.author.toLowerCase().includes(lowerQuery) ||
+          (book.description && book.description.toLowerCase().includes(lowerQuery))
+        );
+      }
+
+      // Sort books
+      function sortBooks(sortOption) {
+        switch (sortOption) {
+          case 'title_asc':
+            filteredBooks.sort((a, b) => a.title.localeCompare(b.title));
+            break;
+          case 'title_desc':
+            filteredBooks.sort((a, b) => b.title.localeCompare(a.title));
+            break;
+          case 'author_asc':
+            filteredBooks.sort((a, b) => a.author.localeCompare(b.author));
+            break;
+          case 'author_desc':
+            filteredBooks.sort((a, b) => b.author.localeCompare(a.author));
+            break;
+          case 'newest':
+            filteredBooks.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            break;
+          case 'oldest':
+            filteredBooks.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            break;
+        }
+
+        // Reset to first page when sorting
+        currentPage = 1;
+        updatePagination();
+        displayBooks();
+      }
+
+      // Update pagination
+      function updatePagination() {
+        totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+
+        // Update page info
+        pageInfo.textContent = `Trang ${currentPage} / ${totalPages || 1}`;
+
+        // Update button states
+        prevPageBtn.disabled = currentPage <= 1;
+        nextPageBtn.disabled = currentPage >= totalPages;
+      }
+
+      // Display books for current page
+      function displayBooks() {
+        booksContainer.innerHTML = '';
+
+        if (filteredBooks.length === 0) {
+          booksContainer.innerHTML = '<p class="text-center">Không tìm thấy sách nào.</p>';
+          return;
+        }
+
+        // Calculate start and end index for current page
+        const startIndex = (currentPage - 1) * booksPerPage;
+        const endIndex = Math.min(startIndex + booksPerPage, filteredBooks.length);
+
+        // Create and append book cards
+        for (let i = startIndex; i < endIndex; i++) {
+          const bookCard = createBookCard(filteredBooks[i]);
+          booksContainer.appendChild(bookCard);
+        }
+      }
+
+      // Event listeners
+      searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const query = searchInput.value.trim();
+        filteredBooks = filterBooks(query);
+
+        // Reset to first page
+        currentPage = 1;
+        updatePagination();
+        displayBooks();
+
+        // Update URL with search query
+        const url = new URL(window.location);
+        if (query) {
+          url.searchParams.set('q', query);
+        } else {
+          url.searchParams.delete('q');
+        }
+        window.history.pushState({}, '', url);
+      });
+
+      sortSelect.addEventListener('change', () => {
+        sortBooks(sortSelect.value);
+      });
+
+      prevPageBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          updatePagination();
+          displayBooks();
+          window.scrollTo(0, 0);
+        }
+      });
+
+      nextPageBtn.addEventListener('click', () => {
+        if (currentPage < totalPages) {
+          currentPage++;
+          updatePagination();
+          displayBooks();
+          window.scrollTo(0, 0);
+        }
+      });
+
+      // Load books on page load
+      loadBooks();
+    });
+  </script>
+</body>
+</html>

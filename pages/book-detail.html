@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chi tiết sách - Simple Book Rental</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <nav class="navbar">
+        <a href="../index.html" class="logo">Simple Book Rental</a>
+
+        <ul class="nav-links">
+          <li><a href="../index.html">Trang chủ</a></li>
+          <li><a href="books.html">Sách</a></li>
+          <li><a href="about.html">Giới thiệu</a></li>
+          <li><a href="contact.html">Liên hệ</a></li>
+        </ul>
+
+        <div class="auth-buttons">
+          <!-- Will be populated by auth.js, but adding fallback buttons -->
+          <a href="login.html" class="btn btn-outline">Đăng nhập</a>
+          <a href="register.html" class="btn btn-primary">Đăng ký</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Book Detail Section -->
+  <section class="container">
+    <div id="alert-container" class="mt-4"></div>
+
+    <div id="book-detail-container" class="mt-4">
+      <!-- Book details will be loaded dynamically -->
+    </div>
+
+    <!-- Related Books -->
+    <h2 class="mt-5 mb-4">Sách liên quan</h2>
+    <div id="related-books" class="books-container">
+      <!-- Related books will be loaded dynamically -->
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3 class="footer-title">Simple Book Rental</h3>
+          <p>Dịch vụ thuê sách trực tuyến hàng đầu Việt Nam.</p>
+        </div>
+
+        <div class="footer-section">
+          <h3 class="footer-title">Liên kết</h3>
+          <ul class="footer-links">
+            <li><a href="../index.html">Trang chủ</a></li>
+            <li><a href="books.html">Sách</a></li>
+            <li><a href="about.html">Giới thiệu</a></li>
+            <li><a href="contact.html">Liên hệ</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h3 class="footer-title">Liên hệ</h3>
+          <ul class="footer-links">
+            <li>Email: info@simplebookrental.com</li>
+            <li>Điện thoại: +84 123 456 789</li>
+            <li>Địa chỉ: 123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2023 Simple Book Rental. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script type="module">
+    import { BookAPI } from '../js/api.js';
+    import { showLoading, showAlert, getUrlParam, createBookCard, formatDate } from '../js/utils.js';
+    import { initAuth, isLoggedIn, getCurrentUser } from '../js/auth.js';
+
+    // Initialize authentication
+    initAuth();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bookDetailContainer = document.getElementById('book-detail-container');
+      const relatedBooksContainer = document.getElementById('related-books');
+      const alertContainer = document.getElementById('alert-container');
+
+      // Get book ID from URL
+      const bookId = getUrlParam('id');
+
+      if (!bookId) {
+        showAlert('Không tìm thấy ID sách.', 'danger', alertContainer);
+        bookDetailContainer.innerHTML = '<p class="text-center">Không tìm thấy thông tin sách.</p>';
+        return;
+      }
+
+      // Load book details
+      async function loadBookDetails() {
+        try {
+          showLoading(bookDetailContainer);
+
+          const response = await BookAPI.getBookById(bookId);
+          const book = response.data;
+
+          // Update page title
+          document.title = `${book.title} - Simple Book Rental`;
+
+          // Display book details
+          bookDetailContainer.innerHTML = `
+            <div class="book-detail">
+              <div class="book-detail-img-container"></div>
+
+              <div class="book-detail-info">
+                <h1 class="book-detail-title">${book.title}</h1>
+                <p class="book-detail-author">Tác giả: ${book.author}</p>
+                <p class="book-detail-isbn">ISBN: ${book.isbn}</p>
+                <p class="book-detail-description">${book.description || 'Không có mô tả.'}</p>
+
+                <div class="book-detail-meta">
+                  <p>Ngày thêm: ${formatDate(book.created_at)}</p>
+                  ${book.user_id ? `<p>Thuộc về: ${book.user ? book.user.name : 'Người dùng'}</p>` : ''}
+                </div>
+
+                <div class="book-detail-actions mt-4">
+                  ${!book.user_id && isLoggedIn() ?
+                    `<button id="rent-book-btn" class="btn btn-primary">Thuê sách</button>` :
+                    book.user_id === getCurrentUser()?.id ?
+                    `<button id="return-book-btn" class="btn btn-danger">Trả sách</button>` :
+                    `<button class="btn btn-outline" disabled>Sách đã được thuê</button>`
+                  }
+                  <a href="books.html" class="btn btn-outline">Quay lại danh sách</a>
+                </div>
+              </div>
+            </div>
+          `;
+
+          // Add event listeners for rent/return buttons
+          const rentButton = document.getElementById('rent-book-btn');
+          if (rentButton) {
+            rentButton.addEventListener('click', async () => {
+              try {
+                const user = getCurrentUser();
+                if (!user) {
+                  window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+                  return;
+                }
+
+                await BookAPI.updateBook(bookId, { user_id: user.id });
+                showAlert('Thuê sách thành công!', 'success', alertContainer);
+
+                // Reload page after short delay
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1500);
+              } catch (error) {
+                showAlert(error.message || 'Không thể thuê sách. Vui lòng thử lại sau.', 'danger', alertContainer);
+              }
+            });
+          }
+
+          const returnButton = document.getElementById('return-book-btn');
+          if (returnButton) {
+            returnButton.addEventListener('click', async () => {
+              try {
+                await BookAPI.updateBook(bookId, { user_id: null });
+                showAlert('Trả sách thành công!', 'success', alertContainer);
+
+                // Reload page after short delay
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1500);
+              } catch (error) {
+                showAlert(error.message || 'Không thể trả sách. Vui lòng thử lại sau.', 'danger', alertContainer);
+              }
+            });
+          }
+
+          // Load related books
+          loadRelatedBooks(book);
+        } catch (error) {
+          console.error('Error loading book details:', error);
+          showAlert('Đã xảy ra lỗi khi tải thông tin sách. Vui lòng thử lại sau.', 'danger', alertContainer);
+          bookDetailContainer.innerHTML = '<p class="text-center">Không thể tải thông tin sách.</p>';
+        }
+      }
+
+      // Load related books
+      async function loadRelatedBooks(currentBook) {
+        try {
+          showLoading(relatedBooksContainer);
+
+          const response = await BookAPI.getAllBooks();
+          const allBooks = response.data;
+
+          // Filter out current book and get books by same author or similar title
+          const relatedBooks = allBooks
+            .filter(book => book.id !== currentBook.id)
+            .filter(book =>
+              book.author === currentBook.author ||
+              book.title.includes(currentBook.title.split(' ')[0])
+            )
+            .slice(0, 4);
+
+          relatedBooksContainer.innerHTML = '';
+
+          if (relatedBooks.length === 0) {
+            relatedBooksContainer.innerHTML = '<p class="text-center">Không có sách liên quan.</p>';
+            return;
+          }
+
+          // Create and append related book cards
+          relatedBooks.forEach(book => {
+            const bookCard = createBookCard(book);
+            relatedBooksContainer.appendChild(bookCard);
+          });
+        } catch (error) {
+          console.error('Error loading related books:', error);
+          relatedBooksContainer.innerHTML = '<p class="text-center">Không thể tải sách liên quan.</p>';
+        }
+      }
+
+      // Load book details on page load
+      loadBookDetails();
+    });
+  </script>
+</body>
+</html>

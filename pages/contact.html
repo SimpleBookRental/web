@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liên hệ - Simple Book Rental</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <nav class="navbar">
+        <a href="../index.html" class="logo">Simple Book Rental</a>
+        
+        <ul class="nav-links">
+          <li><a href="../index.html">Trang chủ</a></li>
+          <li><a href="books.html">Sách</a></li>
+          <li><a href="about.html">Giới thiệu</a></li>
+          <li><a href="contact.html">Liên hệ</a></li>
+        </ul>
+        
+        <div class="auth-buttons">
+          <!-- Will be populated by auth.js, but adding fallback buttons -->
+          <a href="login.html" class="btn btn-outline">Đăng nhập</a>
+          <a href="register.html" class="btn btn-primary">Đăng ký</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+  
+  <!-- Contact Section -->
+  <section class="container">
+    <h1 class="text-center mt-5 mb-4">Liên hệ với chúng tôi</h1>
+    
+    <div class="contact-container">
+      <div class="contact-info">
+        <h2 class="mb-3">Thông tin liên hệ</h2>
+        
+        <div class="contact-item">
+          <h3>Địa chỉ</h3>
+          <p>123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh</p>
+        </div>
+        
+        <div class="contact-item">
+          <h3>Email</h3>
+          <p>info@simplebookrental.com</p>
+        </div>
+        
+        <div class="contact-item">
+          <h3>Điện thoại</h3>
+          <p>+84 123 456 789</p>
+        </div>
+        
+        <div class="contact-item">
+          <h3>Giờ làm việc</h3>
+          <p>Thứ Hai - Thứ Sáu: 8:00 - 17:00</p>
+          <p>Thứ Bảy: 8:00 - 12:00</p>
+          <p>Chủ Nhật: Nghỉ</p>
+        </div>
+      </div>
+      
+      <div class="contact-form">
+        <h2 class="mb-3">Gửi tin nhắn cho chúng tôi</h2>
+        
+        <div id="alert-container"></div>
+        
+        <form id="contact-form">
+          <div class="form-group">
+            <label for="name" class="form-label">Họ và tên</label>
+            <input type="text" id="name" class="form-input" placeholder="Nhập họ và tên của bạn" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" id="email" class="form-input" placeholder="Nhập email của bạn" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="subject" class="form-label">Tiêu đề</label>
+            <input type="text" id="subject" class="form-input" placeholder="Nhập tiêu đề" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="message" class="form-label">Nội dung</label>
+            <textarea id="message" class="form-input" rows="5" placeholder="Nhập nội dung tin nhắn" required></textarea>
+          </div>
+          
+          <button type="submit" class="form-submit">Gửi tin nhắn</button>
+        </form>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3 class="footer-title">Simple Book Rental</h3>
+          <p>Dịch vụ thuê sách trực tuyến hàng đầu Việt Nam.</p>
+        </div>
+        
+        <div class="footer-section">
+          <h3 class="footer-title">Liên kết</h3>
+          <ul class="footer-links">
+            <li><a href="../index.html">Trang chủ</a></li>
+            <li><a href="books.html">Sách</a></li>
+            <li><a href="about.html">Giới thiệu</a></li>
+            <li><a href="contact.html">Liên hệ</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3 class="footer-title">Liên hệ</h3>
+          <ul class="footer-links">
+            <li>Email: info@simplebookrental.com</li>
+            <li>Điện thoại: +84 123 456 789</li>
+            <li>Địa chỉ: 123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2023 Simple Book Rental. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+  
+  <!-- JavaScript -->
+  <script type="module">
+    import { showAlert } from '../js/utils.js';
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      const contactForm = document.getElementById('contact-form');
+      const alertContainer = document.getElementById('alert-container');
+      
+      contactForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const subject = document.getElementById('subject').value;
+        const message = document.getElementById('message').value;
+        
+        // In a real application, you would send this data to a server
+        // For now, we'll just show a success message
+        
+        showAlert('Tin nhắn của bạn đã được gửi thành công! Chúng tôi sẽ liên hệ lại với bạn sớm nhất có thể.', 'success', alertContainer);
+        
+        // Reset form
+        contactForm.reset();
+      });
+    });
+  </script>
+</body>
+</html>
