@@ -1,71 +1,71 @@
 # Simple Book Rental - Frontend
 
-Đây là phần frontend của hệ thống Simple Book Rental, một ứng dụng cho thuê sách trực tuyến được xây dựng bằng Vanilla JavaScript, HTML và CSS.
+This is the frontend part of the Simple Book Rental system, an online book rental application built with Vanilla JavaScript, HTML, and CSS.
 
-## Tính năng
+## Features
 
-- Đăng ký và đăng nhập người dùng
-- Xem danh sách sách
-- Tìm kiếm và lọc sách
-- Xem chi tiết sách
-- Thuê và trả sách
-- Quản lý hồ sơ người dùng
+- User registration and login
+- View book listings
+- Search and filter books
+- View book details
+- Rent and return books
+- Manage user profile
 
-## Cài đặt
+## Installation
 
-### Yêu cầu
+### Requirements
 
-- Máy chủ web (Apache, Nginx, hoặc bất kỳ máy chủ web nào khác)
-- Backend API đang chạy (xem file swagger.yaml để biết chi tiết API)
+- Web server (Apache, Nginx, or any other web server)
+- Running Backend API (see swagger.yaml file for API details)
 
-### Cài đặt thủ công
+### Manual Installation
 
-1. Clone repository này
-2. Cấu hình máy chủ web để phục vụ các file tĩnh
-3. Mở trình duyệt và truy cập vào địa chỉ của máy chủ web
+1. Clone this repository
+2. Configure your web server to serve the static files
+3. Open your browser and access the web server address
 
-### Sử dụng Docker
+### Using Docker
 
 ```bash
-# Xây dựng image
+# Build the image
 docker build -t simple-book-rental-frontend .
 
-# Chạy container
+# Run the container
 docker run -p 8080:80 simple-book-rental-frontend
 ```
 
-Hoặc sử dụng Docker Compose:
+Or use Docker Compose:
 
 ```bash
 docker-compose up -d
 ```
 
-## Cấu trúc dự án
+## Project Structure
 
 ```
 .
-├── css/              # File CSS
-├── js/               # File JavaScript
-│   ├── api.js        # Module xử lý API
-│   ├── auth.js       # Module xử lý xác thực
-│   ├── app.js        # File JavaScript chính
-│   └── utils.js      # Các hàm tiện ích
-├── pages/            # Các trang HTML
-├── index.html        # Trang chủ
-├── Dockerfile        # Cấu hình Docker
-├── docker-compose.yml # Cấu hình Docker Compose
-└── README.md         # Tài liệu
+├── css/              # CSS files
+├── js/               # JavaScript files
+│   ├── api.js        # API handling module
+│   ├── auth.js       # Authentication module
+│   ├── app.js        # Main JavaScript file
+│   └── utils.js      # Utility functions
+├── pages/            # HTML pages
+├── index.html        # Home page
+├── Dockerfile        # Docker configuration
+├── docker-compose.yml # Docker Compose configuration
+└── README.md         # Documentation
 ```
 
-## API Backend
+## Backend API
 
-Ứng dụng này sử dụng API RESTful được mô tả trong file `swagger.yaml`. Đảm bảo rằng backend API đang chạy và có thể truy cập được từ frontend.
+This application uses the RESTful API described in the `swagger.yaml` file. Make sure that the backend API is running and accessible from the frontend.
 
-## Phát triển
+## Development
 
-### Chỉnh sửa API URL
+### Editing the API URL
 
-Mặc định, ứng dụng kết nối với API tại `http://localhost:3000/api/v1`. Để thay đổi URL này, hãy chỉnh sửa biến `API_BASE_URL` trong file `js/api.js`.
+By default, the application connects to the API at `http://localhost:3000/api/v1`. To change this URL, edit the `API_BASE_URL` variable in the `js/api.js` file.
 
 ```javascript
 const API_BASE_URL = 'http://your-api-url/api/v1';
