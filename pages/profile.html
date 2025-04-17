@@ -1,311 +1,102 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hồ sơ người dùng - Simple Book Rental</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
-  <link rel="stylesheet" href="../css/styles.css">
-  <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profile | Book Rental</title>
+  <link rel="stylesheet" href="../css/styles.css"/>
 </head>
 <body>
-  <!-- Header -->
   <header>
-    <div class="container">
-      <nav class="navbar">
-        <a href="../index.html" class="logo">Simple Book Rental</a>
-
-        <ul class="nav-links">
-          <li><a href="../index.html">Trang chủ</a></li>
-          <li><a href="books.html">Sách</a></li>
-          <li><a href="about.html">Giới thiệu</a></li>
-          <li><a href="contact.html">Liên hệ</a></li>
+    <nav class="navbar">
+      <div class="container">
+        <a href="../index.html" class="logo">Book Rental</a>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="books.html">Books</a></li>
+          <li><a href="search.html">Search</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li id="nav-auth"></li>
         </ul>
-
-        <div class="auth-buttons">
-          <!-- Will be populated by auth.js, but adding fallback buttons -->
-          <a href="login.html" class="btn btn-outline">Đăng nhập</a>
-          <a href="register.html" class="btn btn-primary">Đăng ký</a>
-        </div>
-      </nav>
-    </div>
+        <div class="menu-toggle" id="menuToggle">&#9776;</div>
+      </div>
+    </nav>
   </header>
-
-  <!-- Profile Section -->
-  <section class="container">
-    <h1 class="text-center mt-5 mb-4">Hồ sơ người dùng</h1>
-
-    <div id="alert-container"></div>
-
-    <div class="profile-container">
-      <div class="profile-sidebar">
-        <div id="user-info">
-          <!-- User info will be loaded dynamically -->
+  <main>
+    <section class="container" style="max-width:500px;margin:2rem auto;">
+      <h1 style="text-align:center;margin-bottom:2rem;">My Profile</h1>
+      <form id="profileForm" class="form-card">
+        <div class="form-group">
+          <label for="profileName">Name</label>
+          <input type="text" id="profileName" required/>
         </div>
-
-        <ul class="profile-nav mt-4">
-          <li><a href="#profile" class="active" data-tab="profile">Thông tin cá nhân</a></li>
-          <li><a href="#my-books" data-tab="my-books">Sách đã thuê</a></li>
-          <li><a href="#settings" data-tab="settings">Cài đặt tài khoản</a></li>
-        </ul>
-      </div>
-
-      <div class="profile-main">
-        <!-- Profile Tab -->
-        <div id="profile-tab" class="profile-tab active">
-          <h2 class="mb-4">Thông tin cá nhân</h2>
-
-          <div id="profile-info">
-            <!-- Profile info will be loaded dynamically -->
-          </div>
+        <div class="form-group">
+          <label for="profileEmail">Email</label>
+          <input type="email" id="profileEmail" required disabled/>
         </div>
-
-        <!-- My Books Tab -->
-        <div id="my-books-tab" class="profile-tab hidden">
-          <h2 class="mb-4">Sách đã thuê</h2>
-
-          <div id="my-books-container">
-            <!-- User's books will be loaded dynamically -->
-          </div>
+        <div class="form-group">
+          <label for="profilePassword">New Password (optional)</label>
+          <input type="password" id="profilePassword" minlength="6" autocomplete="new-password"/>
         </div>
-
-        <!-- Settings Tab -->
-        <div id="settings-tab" class="profile-tab hidden">
-          <h2 class="mb-4">Cài đặt tài khoản</h2>
-
-          <form id="update-profile-form">
-            <div class="form-group">
-              <label for="name" class="form-label">Họ và tên</label>
-              <input type="text" id="name" class="form-input" placeholder="Nhập họ và tên của bạn" required>
-            </div>
-
-            <div class="form-group">
-              <label for="email" class="form-label">Email</label>
-              <input type="email" id="email" class="form-input" placeholder="Nhập email của bạn" required>
-            </div>
-
-            <div class="form-group">
-              <label for="new-password" class="form-label">Mật khẩu mới (để trống nếu không thay đổi)</label>
-              <input type="password" id="new-password" class="form-input" placeholder="Nhập mật khẩu mới">
-            </div>
-
-            <div class="form-group">
-              <label for="confirm-password" class="form-label">Xác nhận mật khẩu mới</label>
-              <input type="password" id="confirm-password" class="form-input" placeholder="Nhập lại mật khẩu mới">
-            </div>
-
-            <button type="submit" class="form-submit">Cập nhật thông tin</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
+        <button type="submit" class="btn-primary" style="width:100%;">Update Profile</button>
+      </form>
+    </section>
+  </main>
   <footer>
     <div class="container">
-      <div class="footer-content">
-        <div class="footer-section">
-          <h3 class="footer-title">Simple Book Rental</h3>
-          <p>Dịch vụ thuê sách trực tuyến hàng đầu Việt Nam.</p>
-        </div>
-
-        <div class="footer-section">
-          <h3 class="footer-title">Liên kết</h3>
-          <ul class="footer-links">
-            <li><a href="../index.html">Trang chủ</a></li>
-            <li><a href="books.html">Sách</a></li>
-            <li><a href="about.html">Giới thiệu</a></li>
-            <li><a href="contact.html">Liên hệ</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-section">
-          <h3 class="footer-title">Liên hệ</h3>
-          <ul class="footer-links">
-            <li>Email: info@simplebookrental.com</li>
-            <li>Điện thoại: +84 123 456 789</li>
-            <li>Địa chỉ: 123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="footer-bottom">
-        <p>&copy; 2023 Simple Book Rental. All rights reserved.</p>
-      </div>
+      <p>&copy; 2025 Book Rental. All rights reserved.</p>
     </div>
   </footer>
-
-  <!-- JavaScript -->
-  <script type="module">
-    import { UserAPI, BookAPI } from '../js/api.js';
-    import { showLoading, showAlert, formatDate, createBookCard } from '../js/utils.js';
-    import { requireAuth, getCurrentUser } from '../js/auth.js';
-
-    // Require authentication for this page
-    requireAuth();
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const userInfoContainer = document.getElementById('user-info');
-      const profileInfoContainer = document.getElementById('profile-info');
-      const myBooksContainer = document.getElementById('my-books-container');
-      const alertContainer = document.getElementById('alert-container');
-      const updateProfileForm = document.getElementById('update-profile-form');
-
-      // Tab navigation
-      const tabLinks = document.querySelectorAll('.profile-nav a');
-      const tabs = document.querySelectorAll('.profile-tab');
-
-      // Get current user
-      const currentUser = getCurrentUser();
-
-      // Load user info
-      async function loadUserInfo() {
-        try {
-          showLoading(userInfoContainer);
-          showLoading(profileInfoContainer);
-
-          // Get fresh user data from API
-          const response = await UserAPI.getUserById(currentUser.id);
-          const user = response.data;
-
-          // Update localStorage with fresh user data
-          localStorage.setItem('user', JSON.stringify(user));
-
-          // Display user info in sidebar
-          userInfoContainer.innerHTML = `
-            <h3 class="profile-name">${user.name}</h3>
-            <p class="profile-email">${user.email}</p>
-          `;
-
-          // Display profile info
-          profileInfoContainer.innerHTML = `
-            <div class="profile-detail">
-              <p><strong>Họ và tên:</strong> ${user.name}</p>
-              <p><strong>Email:</strong> ${user.email}</p>
-              <p><strong>Ngày tham gia:</strong> ${formatDate(user.created_at)}</p>
-              <p><strong>Số sách đã thuê:</strong> ${user.books ? user.books.length : 0}</p>
-            </div>
-          `;
-
-          // Populate update form
-          document.getElementById('name').value = user.name;
-          document.getElementById('email').value = user.email;
-
-          // Load user's books
-          loadUserBooks(user.id);
-        } catch (error) {
-          console.error('Error loading user info:', error);
-          showAlert('Đã xảy ra lỗi khi tải thông tin người dùng. Vui lòng thử lại sau.', 'danger', alertContainer);
-        }
+  <script src="../js/app.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script>
+    // Load user info
+    function loadProfile() {
+      const user = JSON.parse(window.localStorage.getItem('user') || 'null');
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
       }
+      document.getElementById('profileName').value = user.name;
+      document.getElementById('profileEmail').value = user.email;
+    }
 
-      // Load user's books
-      async function loadUserBooks(userId) {
-        try {
-          showLoading(myBooksContainer);
-
-          const response = await BookAPI.getBooksByUserId(userId);
-          const books = response.data;
-
-          myBooksContainer.innerHTML = '';
-
-          if (books.length === 0) {
-            myBooksContainer.innerHTML = '<p class="text-center">Bạn chưa thuê sách nào.</p>';
+    // Handle profile update
+    document.getElementById('profileForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const user = JSON.parse(window.localStorage.getItem('user') || 'null');
+      if (!user) return;
+      const name = document.getElementById('profileName').value.trim();
+      const password = document.getElementById('profilePassword').value;
+      if (!name) {
+        window.BookRentalUtils.showToast('Tên không được để trống', 'error');
+        return;
+      }
+      window.BookRentalUtils.showLoading();
+      try {
+        const updateData = { name };
+        if (password) {
+          if (password.length < 6) {
+            window.BookRentalUtils.showToast('Mật khẩu phải từ 6 ký tự', 'error');
+            window.BookRentalUtils.hideLoading();
             return;
           }
-
-          // Create books container
-          const booksGrid = document.createElement('div');
-          booksGrid.className = 'books-container';
-
-          // Create and append book cards
-          books.forEach(book => {
-            const bookCard = createBookCard(book);
-            booksGrid.appendChild(bookCard);
-          });
-
-          myBooksContainer.appendChild(booksGrid);
-        } catch (error) {
-          console.error('Error loading user books:', error);
-          myBooksContainer.innerHTML = '<p class="text-center">Không thể tải sách đã thuê. Vui lòng thử lại sau.</p>';
+          updateData.password = password;
         }
+        const updated = await window.BookRentalAPI.updateUser(user.id, updateData);
+        window.localStorage.setItem('user', JSON.stringify(updated));
+        window.BookRentalUtils.showToast('Cập nhật thành công!', 'success');
+        document.getElementById('profilePassword').value = '';
+      } catch (err) {
+        window.BookRentalUtils.showToast(err.message || 'Cập nhật thất bại', 'error');
+      } finally {
+        window.BookRentalUtils.hideLoading();
       }
-
-      // Handle tab navigation
-      tabLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-
-          // Remove active class from all tabs and links
-          tabLinks.forEach(l => l.classList.remove('active'));
-          tabs.forEach(t => t.classList.add('hidden'));
-
-          // Add active class to clicked link
-          link.classList.add('active');
-
-          // Show corresponding tab
-          const tabId = link.getAttribute('data-tab');
-          document.getElementById(`${tabId}-tab`).classList.remove('hidden');
-        });
-      });
-
-      // Handle profile update
-      updateProfileForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const name = document.getElementById('name').value;
-        const email = document.getElementById('email').value;
-        const newPassword = document.getElementById('new-password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
-
-        // Validate form
-        if (newPassword && newPassword !== confirmPassword) {
-          showAlert('Mật khẩu xác nhận không khớp.', 'danger', alertContainer);
-          return;
-        }
-
-        try {
-          // Disable form submission
-          const submitButton = updateProfileForm.querySelector('button[type="submit"]');
-          submitButton.disabled = true;
-          submitButton.textContent = 'Đang cập nhật...';
-
-          // Prepare update data
-          const updateData = { name, email };
-          if (newPassword) {
-            updateData.password = newPassword;
-          }
-
-          // Update user
-          await UserAPI.updateUser(currentUser.id, updateData);
-
-          // Show success message
-          showAlert('Cập nhật thông tin thành công!', 'success', alertContainer);
-
-          // Clear password fields
-          document.getElementById('new-password').value = '';
-          document.getElementById('confirm-password').value = '';
-
-          // Reload user info
-          loadUserInfo();
-
-          // Re-enable form submission
-          submitButton.disabled = false;
-          submitButton.textContent = 'Cập nhật thông tin';
-        } catch (error) {
-          // Show error message
-          showAlert(error.message || 'Cập nhật thất bại. Vui lòng thử lại.', 'danger', alertContainer);
-
-          // Re-enable form submission
-          submitButton.disabled = false;
-          submitButton.textContent = 'Cập nhật thông tin';
-        }
-      });
-
-      // Load user info on page load
-      loadUserInfo();
     });
+
+    document.addEventListener('DOMContentLoaded', loadProfile);
   </script>
 </body>
 </html>

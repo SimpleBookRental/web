@@ -1,150 +1,103 @@
 /**
- * Utility functions for Simple Book Rental
+ * Book Rental - Utility Module
+ * Common utility functions for the frontend.
+ * Author: Cline (auto-generated)
+ * All code is commented in English for maintainability.
  */
 
 /**
- * Format a date string to a more readable format
- * @param {string} dateString - ISO date string
- * @returns {string} - Formatted date string
+ * Format ISO date string to readable format.
+ * @param {string} isoString 
+ * @returns {string}
  */
-function formatDate(dateString) {
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  return new Date(dateString).toLocaleDateString('vi-VN', options);
+function formatDate(isoString) {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  return date.toLocaleDateString('vi-VN', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
 /**
- * Truncate a string to a specified length
- * @param {string} str - String to truncate
- * @param {number} length - Maximum length
- * @returns {string} - Truncated string
+ * Validate email format.
+ * @param {string} email 
+ * @returns {boolean}
  */
-function truncateString(str, length = 100) {
-  if (!str) return '';
-  if (str.length <= length) return str;
-  return str.slice(0, length) + '...';
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 /**
- * Show an alert message
- * @param {string} message - Message to display
- * @param {string} type - Alert type (success, danger, warning)
- * @param {HTMLElement} container - Container to append the alert to
- * @param {number} timeout - Time in milliseconds before the alert disappears
+ * Show a loading spinner overlay.
  */
-function showAlert(message, type = 'success', container, timeout = 5000) {
-  // Create alert element
-  const alertElement = document.createElement('div');
-  alertElement.className = `alert alert-${type}`;
-  alertElement.textContent = message;
-
-  // Add alert to container
-  container.prepend(alertElement);
-
-  // Remove alert after timeout
-  setTimeout(() => {
-    alertElement.remove();
-  }, timeout);
-}
-
-/**
- * Get URL parameters
- * @param {string} param - Parameter name
- * @returns {string|null} - Parameter value
- */
-function getUrlParam(param) {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get(param);
-}
-
-/**
- * Create a book card element
- * @param {Object} book - Book data
- * @returns {HTMLElement} - Book card element
- */
-function createBookCard(book) {
-  const card = document.createElement('div');
-  card.className = 'book-card';
-
-  card.innerHTML = `
-    <div class="book-info">
-      <h3 class="book-title">${book.title}</h3>
-      <p class="book-author">Tác giả: ${book.author}</p>
-      <p class="book-description">${truncateString(book.description, 150)}</p>
-      <a href="pages/book-detail.html?id=${book.id}" class="btn btn-primary">Xem chi tiết</a>
-    </div>
-  `;
-
-  return card;
-}
-
-/**
- * Show loading spinner
- * @param {HTMLElement} container - Container to append the spinner to
- */
-function showLoading(container) {
-  container.innerHTML = `
-    <div class="loading-container">
-      <div class="spinner"></div>
-    </div>
-  `;
-}
-
-/**
- * Validate form inputs
- * @param {Object} formData - Form data object
- * @param {Array} requiredFields - Array of required field names
- * @returns {Object} - Validation result
- */
-function validateForm(formData, requiredFields) {
-  const errors = {};
-
-  // Check required fields
-  for (const field of requiredFields) {
-    if (!formData[field] || formData[field].trim() === '') {
-      errors[field] = `${field} is required`;
-    }
+function showLoading() {
+  let el = document.getElementById('loadingOverlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'loadingOverlay';
+    el.style.position = 'fixed';
+    el.style.top = 0;
+    el.style.left = 0;
+    el.style.width = '100vw';
+    el.style.height = '100vh';
+    el.style.background = 'rgba(0,0,0,0.2)';
+    el.style.display = 'flex';
+    el.style.alignItems = 'center';
+    el.style.justifyContent = 'center';
+    el.style.zIndex = 9999;
+    el.innerHTML = '<div style="padding:2rem;background:#fff;border-radius:16px;box-shadow:0 2px 12px #0002;font-size:1.2rem;">Loading...</div>';
+    document.body.appendChild(el);
+  } else {
+    el.style.display = 'flex';
   }
-
-  // Validate email format if email is present
-  if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-    errors.email = 'Invalid email format';
-  }
-
-  // Validate password length if password is present
-  if (formData.password && formData.password.length < 6) {
-    errors.password = 'Password must be at least 6 characters';
-  }
-
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors
-  };
 }
 
 /**
- * Debounce function to limit how often a function can be called
- * @param {Function} func - Function to debounce
- * @param {number} delay - Delay in milliseconds
- * @returns {Function} - Debounced function
+ * Hide the loading spinner overlay.
  */
-function debounce(func, delay = 300) {
-  let timeoutId;
-  return function(...args) {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => {
-      func.apply(this, args);
-    }, delay);
-  };
+function hideLoading() {
+  const el = document.getElementById('loadingOverlay');
+  if (el) el.style.display = 'none';
 }
 
-// Export utility functions
-export {
+/**
+ * Show a toast message.
+ * @param {string} message 
+ * @param {string} type 'success' | 'error' | 'info'
+ */
+function showToast(message, type = 'info') {
+  let toast = document.getElementById('toastMsg');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toastMsg';
+    toast.style.position = 'fixed';
+    toast.style.bottom = '32px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.minWidth = '200px';
+    toast.style.padding = '1rem 2rem';
+    toast.style.borderRadius = '8px';
+    toast.style.fontSize = '1rem';
+    toast.style.color = '#fff';
+    toast.style.zIndex = 10000;
+    toast.style.boxShadow = '0 2px 12px #0002';
+    document.body.appendChild(toast);
+  }
+  toast.style.background = type === 'success' ? '#4caf50' : (type === 'error' ? '#e74c3c' : '#2d3e50');
+  toast.textContent = message;
+  toast.style.display = 'block';
+  setTimeout(() => { toast.style.display = 'none'; }, 3000);
+}
+
+// Export to global scope
+window.BookRentalUtils = {
   formatDate,
-  truncateString,
-  showAlert,
-  getUrlParam,
-  createBookCard,
+  isValidEmail,
   showLoading,
-  validateForm,
-  debounce
+  hideLoading,
+  showToast
 };

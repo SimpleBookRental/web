@@ -6,7 +6,7 @@
 
 - Handle all errors properly with clear and descriptive messages.
 - Comment all code in English.
-- Keep the following files up-to-date:
+- Keep the following files sync with new capabilities:
     - `README.md`
     - `Dockerfile`
     - `docker-compose.yml`

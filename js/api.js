@@ -1,277 +1,246 @@
 /**
- * API module for Simple Book Rental
- * Handles all API requests to the backend
+ * Book Rental - API Module
+ * Handles all HTTP requests to the backend API.
+ * Author: Cline (auto-generated)
+ * All code is commented in English for maintainability.
+ * 
+ * Usage: All API functions return a Promise.
  */
 
-// Base URL for API requests
-const API_BASE_URL = 'http://localhost:3000/api/v1';
+const API_BASE = 'http://localhost:3000/api/v1';
 
 /**
- * Handles API requests with proper error handling
- * @param {string} endpoint - API endpoint
- * @param {Object} options - Fetch options
- * @returns {Promise<Object>} - Response data
+ * Helper to get Authorization header if token exists.
+ * @returns {Object} Headers object with Authorization if available.
  */
-async function apiRequest(endpoint, options = {}) {
-  try {
-    // Get token from localStorage if it exists
-    const token = localStorage.getItem('accessToken');
+function getAuthHeaders() {
+  const token = window.localStorage.getItem('access_token');
+  return token ? { 'Authorization': 'Bearer ' + token } : {};
+}
 
-    // Set default headers
+/**
+ * Generic API request handler.
+ * @param {string} url - API endpoint (relative to API_BASE)
+ * @param {Object} options - fetch options (method, headers, body, etc.)
+ * @returns {Promise<any>} Response data or throws error with message.
+ */
+async function apiRequest(url, options = {}) {
+  try {
     const headers = {
       'Content-Type': 'application/json',
-      ...options.headers
+      ...getAuthHeaders(),
+      ...(options.headers || {})
     };
-
-    // Add authorization header if token exists
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    // Make the request
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers
-    });
-
-    // Parse the JSON response
-    const data = await response.json();
-
-    // Check if the request was successful
+    const response = await fetch(API_BASE + url, { ...options, headers });
+    const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      // Handle token expiration
+      // Error handling with descriptive message
+      const msg = data.message || data.error || 'Unknown error';
       if (response.status === 401) {
-        // Try to refresh the token
-        const refreshed = await refreshToken();
-        if (refreshed) {
-          // Retry the request with the new token
-          return apiRequest(endpoint, options);
-        } else {
-          // Redirect to login if refresh failed
-          const isSubpage = window.location.pathname.includes('/pages/');
-          const loginPath = isSubpage ? 'login.html' : 'pages/login.html';
-          window.location.href = loginPath;
-        }
+        // Redirect to login if unauthorized
+        window.localStorage.removeItem('access_token');
+        window.localStorage.removeItem('refresh_token');
+        window.localStorage.removeItem('user');
+        window.location.href = '/pages/login.html';
+        throw new Error('Unauthorized. Redirecting to login.');
       }
-
-      throw new Error(data.message || 'Something went wrong');
+      throw new Error(`[${response.status}] ${msg}`);
     }
-
     return data;
-  } catch (error) {
-    console.error('API Request Error:', error);
-    throw error;
+  } catch (err) {
+    // Log and rethrow for UI to handle
+    console.error('API Error:', err);
+    throw err;
   }
 }
 
+/* ===================== AUTH ===================== */
+
 /**
- * Refreshes the access token using the refresh token
- * @returns {Promise<boolean>} - Whether the token was successfully refreshed
+ * Login user.
+ * @param {string} email 
+ * @param {string} password 
+ * @returns {Promise<Object>} LoginResponse
  */
-async function refreshToken() {
-  try {
-    const refreshToken = localStorage.getItem('refreshToken');
-
-    if (!refreshToken) {
-      return false;
-    }
-
-    const response = await fetch(`${API_BASE_URL}/refresh-token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ refresh_token: refreshToken })
-    });
-
-    if (!response.ok) {
-      // Clear tokens if refresh failed
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-      return false;
-    }
-
-    const data = await response.json();
-
-    // Save new tokens
-    localStorage.setItem('accessToken', data.data.access_token);
-    localStorage.setItem('refreshToken', data.data.refresh_token);
-
-    return true;
-  } catch (error) {
-    console.error('Token Refresh Error:', error);
-    return false;
-  }
+function login(email, password) {
+  return apiRequest('/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password })
+  });
 }
 
 /**
- * User API functions
+ * Logout user.
+ * @param {string} refreshToken 
+ * @returns {Promise<Object>} SuccessResponse
  */
-const UserAPI = {
-  /**
-   * Register a new user
-   * @param {Object} userData - User data
-   * @returns {Promise<Object>} - Response data
-   */
-  register: async (userData) => {
-    return apiRequest('/users', {
-      method: 'POST',
-      body: JSON.stringify(userData)
-    });
-  },
-
-  /**
-   * Login a user
-   * @param {Object} credentials - User credentials
-   * @returns {Promise<Object>} - Response data
-   */
-  login: async (credentials) => {
-    const response = await apiRequest('/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials)
-    });
-
-    // Save tokens and user data
-    localStorage.setItem('accessToken', response.data.access_token);
-    localStorage.setItem('refreshToken', response.data.refresh_token);
-    localStorage.setItem('user', JSON.stringify(response.data.user));
-
-    return response;
-  },
-
-  /**
-   * Logout a user
-   * @returns {Promise<Object>} - Response data
-   */
-  logout: async () => {
-    const refreshToken = localStorage.getItem('refreshToken');
-
-    if (!refreshToken) {
-      return { success: true };
-    }
-
-    const response = await apiRequest('/logout', {
-      method: 'POST',
-      body: JSON.stringify({ refresh_token: refreshToken })
-    });
-
-    // Clear local storage
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-
-    return response;
-  },
-
-  /**
-   * Get all users
-   * @returns {Promise<Object>} - Response data
-   */
-  getAllUsers: async () => {
-    return apiRequest('/users');
-  },
-
-  /**
-   * Get a user by ID
-   * @param {string} id - User ID
-   * @returns {Promise<Object>} - Response data
-   */
-  getUserById: async (id) => {
-    return apiRequest(`/users/${id}`);
-  },
-
-  /**
-   * Update a user
-   * @param {string} id - User ID
-   * @param {Object} userData - User data
-   * @returns {Promise<Object>} - Response data
-   */
-  updateUser: async (id, userData) => {
-    return apiRequest(`/users/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(userData)
-    });
-  },
-
-  /**
-   * Delete a user
-   * @param {string} id - User ID
-   * @returns {Promise<Object>} - Response data
-   */
-  deleteUser: async (id) => {
-    return apiRequest(`/users/${id}`, {
-      method: 'DELETE'
-    });
-  }
-};
+function logout(refreshToken) {
+  return apiRequest('/logout', {
+    method: 'POST',
+    body: JSON.stringify({ refresh_token: refreshToken })
+  });
+}
 
 /**
- * Book API functions
+ * Refresh JWT token.
+ * @param {string} refreshToken 
+ * @returns {Promise<Object>} RefreshTokenResponse
  */
-const BookAPI = {
-  /**
-   * Create a new book
-   * @param {Object} bookData - Book data
-   * @returns {Promise<Object>} - Response data
-   */
-  createBook: async (bookData) => {
-    return apiRequest('/books', {
-      method: 'POST',
-      body: JSON.stringify(bookData)
-    });
-  },
+function refreshToken(refreshToken) {
+  return apiRequest('/refresh-token', {
+    method: 'POST',
+    body: JSON.stringify({ refresh_token: refreshToken })
+  });
+}
 
-  /**
-   * Get all books
-   * @returns {Promise<Object>} - Response data
-   */
-  getAllBooks: async () => {
-    return apiRequest('/books');
-  },
+/* ===================== USERS ===================== */
 
-  /**
-   * Get a book by ID
-   * @param {string} id - Book ID
-   * @returns {Promise<Object>} - Response data
-   */
-  getBookById: async (id) => {
-    return apiRequest(`/books/${id}`);
-  },
+/**
+ * Register a new user.
+ * @param {Object} user { email, name, password }
+ * @returns {Promise<Object>} User
+ */
+function registerUser(user) {
+  return apiRequest('/users', {
+    method: 'POST',
+    body: JSON.stringify(user)
+  });
+}
 
-  /**
-   * Update a book
-   * @param {string} id - Book ID
-   * @param {Object} bookData - Book data
-   * @returns {Promise<Object>} - Response data
-   */
-  updateBook: async (id, bookData) => {
-    return apiRequest(`/books/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(bookData)
-    });
-  },
+/**
+ * Get all users.
+ * @returns {Promise<Array>} List of users
+ */
+function getAllUsers() {
+  return apiRequest('/users', { method: 'GET' });
+}
 
-  /**
-   * Delete a book
-   * @param {string} id - Book ID
-   * @returns {Promise<Object>} - Response data
-   */
-  deleteBook: async (id) => {
-    return apiRequest(`/books/${id}`, {
-      method: 'DELETE'
-    });
-  },
+/**
+ * Get user by ID.
+ * @param {string} id 
+ * @returns {Promise<Object>} User
+ */
+function getUserById(id) {
+  return apiRequest(`/users/${id}`, { method: 'GET' });
+}
 
-  /**
-   * Get books by user ID
-   * @param {string} userId - User ID
-   * @returns {Promise<Object>} - Response data
-   */
-  getBooksByUserId: async (userId) => {
-    return apiRequest(`/user-books/${userId}`);
-  }
+/**
+ * Update user by ID.
+ * @param {string} id 
+ * @param {Object} userUpdate 
+ * @returns {Promise<Object>} User
+ */
+function updateUser(id, userUpdate) {
+  return apiRequest(`/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(userUpdate)
+  });
+}
+
+/**
+ * Delete user by ID.
+ * @param {string} id 
+ * @returns {Promise<Object>} SuccessResponse
+ */
+function deleteUser(id) {
+  return apiRequest(`/users/${id}`, { method: 'DELETE' });
+}
+
+/* ===================== BOOKS ===================== */
+
+/**
+ * Get all books.
+ * @returns {Promise<Array>} List of books
+ */
+function getAllBooks() {
+  return apiRequest('/books', { method: 'GET' });
+}
+
+/**
+ * Get book by ID.
+ * @param {string} id 
+ * @returns {Promise<Object>} Book
+ */
+function getBookById(id) {
+  return apiRequest(`/books/${id}`, { method: 'GET' });
+}
+
+/**
+ * Create a new book.
+ * @param {Object} book 
+ * @returns {Promise<Object>} Book
+ */
+function createBook(book) {
+  return apiRequest('/books', {
+    method: 'POST',
+    body: JSON.stringify(book)
+  });
+}
+
+/**
+ * Update a book by ID.
+ * @param {string} id 
+ * @param {Object} bookUpdate 
+ * @returns {Promise<Object>} Book
+ */
+function updateBook(id, bookUpdate) {
+  return apiRequest(`/books/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(bookUpdate)
+  });
+}
+
+/**
+ * Delete a book by ID.
+ * @param {string} id 
+ * @returns {Promise<Object>} SuccessResponse
+ */
+function deleteBook(id) {
+  return apiRequest(`/books/${id}`, { method: 'DELETE' });
+}
+
+/* ===================== BOOK-USER OPERATIONS ===================== */
+
+/**
+ * Create a book and associate it with a user.
+ * @param {Object} bookUserRequest 
+ * @returns {Promise<Object>} Book
+ */
+function createBookWithUser(bookUserRequest) {
+  return apiRequest('/book-users', {
+    method: 'POST',
+    body: JSON.stringify(bookUserRequest)
+  });
+}
+
+/**
+ * Transfer a book from one user to another.
+ * @param {string} bookId 
+ * @param {Object} transferRequest { from_user_id, to_user_id }
+ * @returns {Promise<Object>} SuccessResponse
+ */
+function transferBook(bookId, transferRequest) {
+  return apiRequest(`/books/${bookId}/transfer`, {
+    method: 'POST',
+    body: JSON.stringify(transferRequest)
+  });
+}
+
+// Export functions to global scope for use in other scripts
+window.BookRentalAPI = {
+  login,
+  logout,
+  refreshToken,
+  registerUser,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+  getAllBooks,
+  getBookById,
+  createBook,
+  updateBook,
+  deleteBook,
+  createBookWithUser,
+  transferBook
 };
-
-// Export the API modules
-export { UserAPI, BookAPI };

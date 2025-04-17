@@ -1,87 +1,53 @@
 /**
- * Main JavaScript file for Simple Book Rental
+ * Book Rental - Main App JS
+ * Handles navigation, UI events, and app-wide logic.
+ * Author: Cline (auto-generated)
+ * All code is commented in English for maintainability.
  */
 
-import { initAuth } from './auth.js';
-import { BookAPI } from './api.js';
-import { showLoading, createBookCard, showAlert } from './utils.js';
-
-/**
- * Initialize the application
- */
-function initApp() {
-  // Initialize authentication
-  initAuth();
-
-  // Initialize page-specific functionality
-  const currentPage = window.location.pathname;
-
-  // Always initialize home page for index.html
-  initHomePage();
-}
-
-/**
- * Initialize the home page
- */
-async function initHomePage() {
-  const booksContainer = document.querySelector('.books-container');
-
-  if (!booksContainer) return;
-
-  try {
-    // Show loading spinner
-    showLoading(booksContainer);
-
-    // Fetch featured books
-    const response = await BookAPI.getAllBooks();
-    const books = response.data;
-
-    // Clear loading spinner
-    booksContainer.innerHTML = '';
-
-    // Display books or show message if no books
-    if (books.length === 0) {
-      booksContainer.innerHTML = '<p class="text-center">Không có sách nào.</p>';
-      return;
-    }
-
-    // Create and append book cards
-    books.forEach(book => {
-      const bookCard = createBookCard(book);
-      booksContainer.appendChild(bookCard);
+// Import utility and API modules (Vanilla JS: loaded via <script> tags)
+document.addEventListener('DOMContentLoaded', function () {
+  // Responsive navbar toggle
+  const menuToggle = document.getElementById('menuToggle');
+  const navLinks = document.getElementById('navLinks');
+  if (menuToggle && navLinks) {
+    menuToggle.addEventListener('click', function () {
+      navLinks.classList.toggle('active');
     });
-  } catch (error) {
-    console.error('Error loading books:', error);
-    booksContainer.innerHTML = `
-      <div class="alert alert-danger">
-        Đã xảy ra lỗi khi tải sách. Vui lòng thử lại sau.
-      </div>
+  }
+
+  // Auth navigation (login/logout/profile)
+  updateNavAuth();
+
+  // Add more global event listeners if needed
+});
+
+/**
+ * Update the navigation bar with auth links based on login state.
+ */
+function updateNavAuth() {
+  const navAuth = document.getElementById('nav-auth');
+  if (!navAuth) return;
+  const user = window.localStorage.getItem('user');
+  if (user) {
+    navAuth.innerHTML = `
+      <a href="/pages/profile.html">Profile</a>
+      <a href="#" id="logoutBtn">Logout</a>
+    `;
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        window.localStorage.removeItem('user');
+        window.localStorage.removeItem('access_token');
+        window.localStorage.removeItem('refresh_token');
+        window.location.href = 'index.html';
+      });
+    }
+  } else {
+    navAuth.innerHTML = `
+      <a href="/pages/login.html">Login</a>
+      <a href="/pages/register.html">Register</a>
     `;
   }
 }
-
-/**
- * Initialize the search functionality
- */
-function initSearch() {
-  const searchForm = document.getElementById('search-form');
-  const searchInput = document.getElementById('search-input');
-
-  if (!searchForm || !searchInput) return;
-
-  searchForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const searchTerm = searchInput.value.trim();
-    if (!searchTerm) return;
-
-    // Redirect to search results page
-    window.location.href = `pages/search.html?q=${encodeURIComponent(searchTerm)}`;
-  });
-}
-
-// Initialize the application when the DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-  initApp();
-  initSearch();
-});

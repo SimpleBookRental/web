@@ -1,119 +1,62 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Book Rental - Thuê sách trực tuyến</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book Rental</title>
+  <link rel="stylesheet" href="css/styles.css"/>
+  <!-- Google Fonts for modern look -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet"/>
 </head>
 <body>
-  <!-- Header -->
   <header>
-    <div class="container">
-      <nav class="navbar">
-        <a href="index.html" class="logo">Simple Book Rental</a>
-
-        <ul class="nav-links">
-          <li><a href="index.html">Trang chủ</a></li>
-          <li><a href="pages/books.html">Sách</a></li>
-          <li><a href="pages/about.html">Giới thiệu</a></li>
-          <li><a href="pages/contact.html">Liên hệ</a></li>
+    <nav class="navbar">
+      <div class="container">
+        <a href="index.html" class="logo">Book Rental</a>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="pages/books.html">Books</a></li>
+          <li><a href="pages/search.html">Search</a></li>
+          <li><a href="pages/about.html">About</a></li>
+          <li><a href="pages/contact.html">Contact</a></li>
+          <li id="nav-auth"></li>
         </ul>
-
-        <div class="auth-buttons">
-          <!-- Will be populated by auth.js, but adding fallback buttons -->
-          <a href="pages/login.html" class="btn btn-outline">Đăng nhập</a>
-          <a href="pages/register.html" class="btn btn-primary">Đăng ký</a>
-        </div>
-      </nav>
-    </div>
+        <div class="menu-toggle" id="menuToggle">&#9776;</div>
+      </div>
+    </nav>
   </header>
-
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="container">
-      <h1>Thuê sách trực tuyến</h1>
-      <p>Khám phá thế giới qua những cuốn sách hay. Thuê sách dễ dàng, nhanh chóng và tiết kiệm.</p>
-      <form id="search-form" class="search-form">
-        <input type="text" id="search-input" placeholder="Tìm kiếm sách..." required>
-        <button type="submit" class="btn btn-primary">Tìm kiếm</button>
-      </form>
-    </div>
-  </section>
-
-  <!-- Featured Books -->
-  <section class="container">
-    <h2 class="text-center mt-5 mb-4">Sách nổi bật</h2>
-    <div class="books-container">
-      <!-- Books will be loaded dynamically -->
-    </div>
-  </section>
-
-  <!-- How It Works -->
-  <section class="container mt-5">
-    <h2 class="text-center mb-4">Cách thức hoạt động</h2>
-    <div class="steps-container">
-      <div class="step">
-        <div class="step-number">1</div>
-        <h3>Đăng ký tài khoản</h3>
-        <p>Tạo tài khoản miễn phí để bắt đầu thuê sách.</p>
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Welcome to Book Rental</h1>
+        <p>Discover, rent, and manage your favorite books easily.</p>
+        <a href="pages/books.html" class="btn-primary">Browse Books</a>
       </div>
-      <div class="step">
-        <div class="step-number">2</div>
-        <h3>Tìm sách yêu thích</h3>
-        <p>Tìm kiếm và chọn sách từ thư viện đa dạng của chúng tôi.</p>
+    </section>
+    <section class="features">
+      <div class="container features-grid">
+        <div class="feature-card">
+          <h2>Easy Search</h2>
+          <p>Find books by title, author, or ISBN quickly.</p>
+        </div>
+        <div class="feature-card">
+          <h2>Secure Account</h2>
+          <p>Register and manage your profile securely.</p>
+        </div>
+        <div class="feature-card">
+          <h2>Book Management</h2>
+          <p>Add, update, or transfer books with a few clicks.</p>
+        </div>
       </div>
-      <div class="step">
-        <div class="step-number">3</div>
-        <h3>Thuê sách</h3>
-        <p>Thuê sách với vài cú nhấp chuột và nhận sách tại nhà.</p>
-      </div>
-      <div class="step">
-        <div class="step-number">4</div>
-        <h3>Đọc và trả lại</h3>
-        <p>Đọc sách và trả lại khi hết thời hạn thuê.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
+    </section>
+  </main>
   <footer>
     <div class="container">
-      <div class="footer-content">
-        <div class="footer-section">
-          <h3 class="footer-title">Simple Book Rental</h3>
-          <p>Dịch vụ thuê sách trực tuyến hàng đầu Việt Nam.</p>
-        </div>
-
-        <div class="footer-section">
-          <h3 class="footer-title">Liên kết</h3>
-          <ul class="footer-links">
-            <li><a href="index.html">Trang chủ</a></li>
-            <li><a href="pages/books.html">Sách</a></li>
-            <li><a href="pages/about.html">Giới thiệu</a></li>
-            <li><a href="pages/contact.html">Liên hệ</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-section">
-          <h3 class="footer-title">Liên hệ</h3>
-          <ul class="footer-links">
-            <li>Email: info@simplebookrental.com</li>
-            <li>Điện thoại: +84 123 456 789</li>
-            <li>Địa chỉ: 123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="footer-bottom">
-        <p>&copy; 2023 Simple Book Rental. All rights reserved.</p>
-      </div>
+      <p>&copy; 2025 Book Rental. All rights reserved.</p>
     </div>
   </footer>
-
-  <!-- JavaScript -->
-  <script type="module" src="js/app.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
 </body>
 </html>
