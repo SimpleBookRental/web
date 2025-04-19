@@ -1,62 +1,91 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Book Rental</title>
-  <link rel="stylesheet" href="css/styles.css"/>
-  <!-- Google Fonts for modern look -->
-  <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet"/>
+  <meta charset="UTF-8">
+  <title>Simple Book Rental</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <nav class="navbar">
-      <div class="container">
-        <a href="index.html" class="logo">Book Rental</a>
-        <ul class="nav-links" id="navLinks">
-          <li><a href="pages/books.html">Books</a></li>
-          <li><a href="pages/search.html">Search</a></li>
-          <li><a href="pages/about.html">About</a></li>
-          <li><a href="pages/contact.html">Contact</a></li>
-          <li id="nav-auth"></li>
-        </ul>
-        <div class="menu-toggle" id="menuToggle">&#9776;</div>
-      </div>
-    </nav>
-  </header>
+  <nav id="navbar">
+    <span id="nav-home" class="nav-link">Home</span>
+    <span id="nav-profile" class="nav-link">Profile</span>
+    <span id="nav-logout" class="nav-link" style="display:none;">Logout</span>
+    <span id="nav-login" class="nav-link">Login</span>
+    <span id="nav-register" class="nav-link">Register</span>
+  </nav>
+
   <main>
-    <section class="hero">
-      <div class="container">
-        <h1>Welcome to Book Rental</h1>
-        <p>Discover, rent, and manage your favorite books easily.</p>
-        <a href="pages/books.html" class="btn-primary">Browse Books</a>
-      </div>
+    <!-- Home: Book Table -->
+    <section id="home-section" style="display:none;">
+      <h2>Your Books</h2>
+      <button id="btn-add-book">Add Book</button>
+      <table id="books-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>ISBN</th>
+            <th>Description</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Book rows here -->
+        </tbody>
+      </table>
     </section>
-    <section class="features">
-      <div class="container features-grid">
-        <div class="feature-card">
-          <h2>Easy Search</h2>
-          <p>Find books by title, author, or ISBN quickly.</p>
-        </div>
-        <div class="feature-card">
-          <h2>Secure Account</h2>
-          <p>Register and manage your profile securely.</p>
-        </div>
-        <div class="feature-card">
-          <h2>Book Management</h2>
-          <p>Add, update, or transfer books with a few clicks.</p>
-        </div>
-      </div>
+
+    <!-- Profile -->
+    <section id="profile-section" style="display:none;">
+      <h2>User Profile</h2>
+      <form id="profile-form">
+        <label>Name: <input type="text" id="profile-name" required></label><br>
+        <label>Email: <input type="email" id="profile-email" required></label><br>
+        <label>New Password: <input type="password" id="profile-password"></label><br>
+        <button type="submit">Update Profile</button>
+      </form>
     </section>
-  </main>
-  <footer>
-    <div class="container">
-      <p>&copy; 2025 Book Rental. All rights reserved.</p>
+
+    <!-- Login -->
+    <section id="login-section" style="display:none;">
+      <h2>Login</h2>
+      <form id="login-form">
+        <label>Email: <input type="email" id="login-email" required></label><br>
+        <label>Password: <input type="password" id="login-password" required></label><br>
+        <button type="submit">Login</button>
+      </form>
+    </section>
+
+    <!-- Register -->
+    <section id="register-section" style="display:none;">
+      <h2>Register</h2>
+      <form id="register-form">
+        <label>Name: <input type="text" id="register-name" required></label><br>
+        <label>Email: <input type="email" id="register-email" required></label><br>
+        <label>Password: <input type="password" id="register-password" required></label><br>
+        <button type="submit">Register</button>
+      </form>
+    </section>
+
+    <!-- Book Modal (Add/Edit) -->
+    <div id="book-modal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <span class="close" id="close-book-modal">&times;</span>
+        <h2 id="book-modal-title">Add/Edit Book</h2>
+        <form id="book-form">
+          <label>Title: <input type="text" id="book-title" required></label><br>
+          <label>Author: <input type="text" id="book-author" required></label><br>
+          <label>ISBN: <input type="text" id="book-isbn" required></label><br>
+          <label>Description: <textarea id="book-description"></textarea></label><br>
+          <button type="submit" id="book-form-submit">Save</button>
+        </form>
+      </div>
     </div>
-  </footer>
-  <script src="js/app.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/utils.js"></script>
+  </main>
+
+  <div id="message" style="display:none;"></div>
+
+  <script src="main.js"></script>
 </body>
 </html>
