@@ -119,9 +119,7 @@ async function updateUserProfile({ name, email, password }) {
 
 // --- Book CRUD ---
 async function fetchBooks() {
-  const allBooks = await apiRequest("/books");
-  // Lọc sách của user hiện tại
-  return allBooks.filter(b => b.user_id === currentUser.id);
+  return apiRequest("/books");
 }
 
 async function createBook({ title, author, isbn, description }) {
@@ -134,7 +132,7 @@ async function createBook({ title, author, isbn, description }) {
 async function updateBook(id, { title, author, isbn, description }) {
   return apiRequest(`/books/${id}`, {
     method: "PUT",
-    body: { title, author, isbn, description, user_id: currentUser.id }
+    body: { title, author, isbn, description }
   });
 }
 
@@ -194,8 +192,9 @@ function renderBooksTable() {
       <td>${book.isbn}</td>
       <td>${book.description || ""}</td>
       <td>
-        <button class="edit-book-btn" data-id="${book.id}">Edit</button>
-        <button class="delete-book-btn" data-id="${book.id}">Delete</button>
+        ${book.user_id === currentUser.id
+          ? '<button class="view-book-btn" data-id="'+book.id+'">View</button><button class="edit-book-btn" data-id="'+book.id+'">Edit</button><button class="transfer-book-btn" data-id="'+book.id+'">Transfer</button><button class="delete-book-btn" data-id="'+book.id+'">Delete</button>'
+          : '<button class="view-book-btn" data-id="'+book.id+'">View</button>'}
       </td>
     `;
     tbody.appendChild(tr);
@@ -211,6 +210,9 @@ function openBookModal(book = null) {
   document.getElementById("book-description").value = book ? book.description || "" : "";
   document.getElementById("book-form-submit").textContent = book ? "Update" : "Create";
   document.getElementById("book-form").dataset.editId = book ? book.id : "";
+  // Enable inputs and show submit button
+  document.querySelectorAll('#book-form input, #book-form textarea').forEach(el => el.disabled = false);
+  document.getElementById("book-form-submit").style.display = "inline-block";
   document.getElementById("book-modal").style.display = "flex";
 }
 
@@ -335,16 +337,38 @@ function setupEventListeners() {
       const book = books.find(b => b.id === id);
       if (book) openBookModal(book);
     }
-    if (e.target.classList.contains("delete-book-btn")) {
-      const id = e.target.dataset.id;
-      if (confirm("Delete this book?")) {
-        deleteBook(id).then(async () => {
-          await loadBooks();
-          showMessage("Book deleted!");
-        }).catch(err => showMessage("Delete failed: " + err.message));
+      if (e.target.classList.contains("delete-book-btn")) {
+        const id = e.target.dataset.id;
+        if (confirm("Delete this book?")) {
+          deleteBook(id).then(async () => {
+            await loadBooks();
+            showMessage("Book deleted!");
+          }).catch(err => showMessage("Delete failed: " + err.message));
+        }
       }
-    }
-  };
+      if (e.target.classList.contains("transfer-book-btn")) {
+        const id = e.target.dataset.id;
+        const toUserId = prompt("Enter user ID to transfer to");
+        if (toUserId) {
+          apiRequest(`/books/${id}/transfer`, {
+            method: "POST",
+            body: { from_user_id: currentUser.id, to_user_id: toUserId }
+          }).then(async () => {
+            await loadBooks();
+            showMessage("Book transferred!");
+          }).catch(err => showMessage("Transfer failed: " + err.message));
+        }
+      }
+      if (e.target.classList.contains("view-book-btn")) {
+        const id = e.target.dataset.id;
+        apiRequest(`/books/${id}`).then(book => {
+          openBookModal(book);
+          // Disable inputs and hide submit button
+          document.querySelectorAll('#book-form input, #book-form textarea').forEach(el => el.disabled = true);
+          document.getElementById("book-form-submit").style.display = "none";
+        }).catch(err => showMessage("View failed: " + err.message));
+      }
+    };
 
   // Modal click outside to close
   document.getElementById("book-modal").onclick = (e) => {

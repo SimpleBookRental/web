@@ -92,6 +92,14 @@ button:hover {
   background: #f1f7ff;
 }
 
+/* Space out action buttons evenly */
+#books-table td button {
+  margin-right: 6px;
+}
+#books-table td button:last-child {
+  margin-right: 0;
+}
+
 .modal {
   position: fixed;
   z-index: 1000;
