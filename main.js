@@ -1,10 +1,20 @@
+/**
+ * SimpleBookRental - Main JavaScript file
+ * This file handles all application logic including authentication, 
+ * API communication, data management, and UI rendering.
+ */
+
+// API and Application State
 const API_BASE = "http://localhost:3000/api/v1";
 let accessToken = null;
 let refreshToken = null;
 let currentUser = null;
 let books = [];
 
-// --- Helper: HTTP request with auth ---
+// --- API Communication ---
+/**
+ * Performs an authenticated API request with automatic token refresh
+ */
 async function apiRequest(path, options = {}) {
   const headers = options.headers || {};
   if (accessToken) headers["Authorization"] = "Bearer " + accessToken;
@@ -122,22 +132,46 @@ async function fetchBooks() {
   return apiRequest("/books");
 }
 
+/**
+ * Loads books from the API and updates the books table
+ * @returns {Array} The loaded books or empty array on error
+ */
+async function loadBooks() {
+  try {
+    const result = await fetchBooks();
+    books = result || [];
+    renderBooksTable();
+    return books;
+  } catch (err) {
+    showMessage("Failed to load books: " + err.message);
+    books = [];
+    renderBooksTable();
+    return [];
+  }
+}
+
 async function createBook({ title, author, isbn, description }) {
-  return apiRequest("/books", {
+  const result = await apiRequest("/books", {
     method: "POST",
     body: { title, author, isbn, description, user_id: currentUser.id }
   });
+  await loadBooks();
+  return result;
 }
 
 async function updateBook(id, { title, author, isbn, description }) {
-  return apiRequest(`/books/${id}`, {
+  const result = await apiRequest(`/books/${id}`, {
     method: "PUT",
     body: { title, author, isbn, description }
   });
+  await loadBooks();
+  return result;
 }
 
 async function deleteBook(id) {
-  return apiRequest(`/books/${id}`, { method: "DELETE" });
+  const result = await apiRequest(`/books/${id}`, { method: "DELETE" });
+  await loadBooks();
+  return result;
 }
 
 // --- UI rendering ---
@@ -147,31 +181,46 @@ function showSection(sectionId) {
   });
 }
 
+/**
+ * Updates the UI based on authentication state
+ */
 function renderUI() {
-  // Navbar
+  // Navbar visibility
   document.getElementById("nav-home").style.display = currentUser ? "" : "none";
   document.getElementById("nav-profile").style.display = currentUser ? "" : "none";
   document.getElementById("nav-logout").style.display = currentUser ? "" : "none";
-  document.getElementById("nav-login").style.display = currentUser ? "": "none";
+  document.getElementById("nav-login").style.display = currentUser ? "none": "";
   document.getElementById("nav-register").style.display = currentUser ? "none" : "";
 
-  // Section
+  // Show appropriate section
   if (currentUser) {
     showSection("home-section");
-    loadBooks();
+    loadBooks(); // loadBooks already calls renderBooksTable
   } else {
     showSection("login-section");
   }
 }
 
+/**
+ * Displays a toast message to the user
+ * @param {string} msg - Message to display
+ * @param {number} timeout - Time in ms to show the message
+ */
 function showMessage(msg, timeout = 2500) {
   const el = document.getElementById("message");
-  el.textContent = msg;
+  const body = document.getElementById("message-body");
+  body.textContent = msg;
+  
+  // Display toast using Bootstrap
   el.style.display = "block";
-  setTimeout(() => { el.style.display = "none"; }, timeout);
+  const toast = new bootstrap.Toast(el, { delay: timeout });
+  toast.show();
 }
 
-// --- Book Table ---
+// --- Book Table Rendering ---
+/**
+ * Renders the books table with current data
+ */
 function renderBooksTable() {
   const tbody = document.querySelector("#books-table tbody");
   tbody.innerHTML = "";
@@ -193,16 +242,26 @@ function renderBooksTable() {
       <td>${book.description || ""}</td>
       <td>
         ${book.user_id === currentUser.id
-          ? '<button class="view-book-btn" data-id="'+book.id+'">View</button><button class="edit-book-btn" data-id="'+book.id+'">Edit</button><button class="transfer-book-btn" data-id="'+book.id+'">Transfer</button><button class="delete-book-btn" data-id="'+book.id+'">Delete</button>'
-          : '<button class="view-book-btn" data-id="'+book.id+'">View</button>'}
+          ? '<button class="btn btn-info btn-sm me-1 view-book-btn" data-id="'+book.id+'">View</button><button class="btn btn-primary btn-sm me-1 edit-book-btn" data-id="'+book.id+'">Edit</button><button class="btn btn-warning btn-sm me-1 transfer-book-btn" data-id="'+book.id+'">Transfer</button><button class="btn btn-danger btn-sm delete-book-btn" data-id="'+book.id+'">Delete</button>'
+          : '<button class="btn btn-info btn-sm view-book-btn" data-id="'+book.id+'">View</button>'}
       </td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-// --- Book Modal ---
+// --- Modal Management ---
+/**
+ * Modal instances and related state
+ */
+let bsBookModal = null;
+let bsTransferModal = null;
+let transferBookId = null;
+
 function openBookModal(book = null) {
+  if (!bsBookModal) {
+    bsBookModal = new bootstrap.Modal(document.getElementById("book-modal"));
+  }
   document.getElementById("book-modal-title").textContent = book ? "Edit Book" : "Add Book";
   document.getElementById("book-title").value = book ? book.title : "";
   document.getElementById("book-author").value = book ? book.author : "";
@@ -213,24 +272,30 @@ function openBookModal(book = null) {
   // Enable inputs and show submit button
   document.querySelectorAll('#book-form input, #book-form textarea').forEach(el => el.disabled = false);
   document.getElementById("book-form-submit").style.display = "inline-block";
-  document.getElementById("book-modal").style.display = "flex";
+  bsBookModal.show();
 }
 
 function closeBookModal() {
-  document.getElementById("book-modal").style.display = "none";
-}
-
-// --- Load books ---
-async function loadBooks() {
-  try {
-    books = await fetchBooks();
-    renderBooksTable();
-  } catch (e) {
-    showMessage("Failed to load books: " + e.message);
+  if (bsBookModal) {
+    bsBookModal.hide();
   }
 }
 
-// --- Event listeners ---
+function openTransferModal(bookId) {
+  transferBookId = bookId;
+  if (!bsTransferModal) {
+    bsTransferModal = new bootstrap.Modal(document.getElementById("transfer-modal"));
+  }
+  document.getElementById("transfer-user-id").value = "";
+  bsTransferModal.show();
+}
+
+function closeTransferModal() {
+  if (bsTransferModal) {
+    bsTransferModal.hide();
+  }
+}
+
 function setupEventListeners() {
   // Navbar
   document.getElementById("nav-home").onclick = () => {
@@ -262,6 +327,8 @@ function setupEventListeners() {
     try {
       await login(email, password);
       showMessage("Login successful!");
+      // Reset form fields after successful login
+      document.getElementById("login-form").reset();
       renderUI();
     } catch (err) {
       showMessage("Login failed: " + err.message);
@@ -277,6 +344,8 @@ function setupEventListeners() {
     try {
       await register(name, email, password);
       showMessage("Register successful! Please login.");
+      // Reset form fields after successful registration
+      document.getElementById("register-form").reset();
       showSection("login-section");
     } catch (err) {
       showMessage("Register failed: " + err.message);
@@ -293,6 +362,8 @@ function setupEventListeners() {
       const updated = await updateUserProfile({ name, email, password: password || undefined });
       currentUser = updated;
       saveAuth();
+      // Reset password field after successful update
+      document.getElementById("profile-password").value = "";
       showMessage("Profile updated!");
     } catch (err) {
       showMessage("Update failed: " + err.message);
@@ -304,6 +375,32 @@ function setupEventListeners() {
 
   // Book modal close
   document.getElementById("close-book-modal").onclick = closeBookModal;
+
+  // Transfer modal close
+  document.getElementById("close-transfer-modal").onclick = closeTransferModal;
+
+  // Transfer form submit
+  document.getElementById("transfer-form").onsubmit = async (e) => {
+    e.preventDefault();
+    const toUserId = document.getElementById("transfer-user-id").value.trim();
+    if (!toUserId) {
+      showMessage("Please enter a user ID to transfer to.");
+      return;
+    }
+    try {
+      await apiRequest(`/books/${transferBookId}/transfer`, {
+        method: "POST",
+        body: { from_user_id: currentUser.id, to_user_id: toUserId }
+      });
+      await loadBooks();
+      // Reset form fields after successful transfer
+      document.getElementById("transfer-form").reset();
+      closeTransferModal();
+      showMessage("Book transferred!");
+    } catch (err) {
+      showMessage("Transfer failed: " + err.message);
+    }
+  };
 
   // Book form (add/edit)
   document.getElementById("book-form").onsubmit = async (e) => {
@@ -348,25 +445,30 @@ function setupEventListeners() {
       }
       if (e.target.classList.contains("transfer-book-btn")) {
         const id = e.target.dataset.id;
-        const toUserId = prompt("Enter user ID to transfer to");
-        if (toUserId) {
-          apiRequest(`/books/${id}/transfer`, {
-            method: "POST",
-            body: { from_user_id: currentUser.id, to_user_id: toUserId }
-          }).then(async () => {
-            await loadBooks();
-            showMessage("Book transferred!");
-          }).catch(err => showMessage("Transfer failed: " + err.message));
-        }
+        openTransferModal(id);
       }
       if (e.target.classList.contains("view-book-btn")) {
         const id = e.target.dataset.id;
-        apiRequest(`/books/${id}`).then(book => {
-          openBookModal(book);
+        // Check if book exists in memory
+        const existingBook = books.find(b => b.id === id);
+        if (existingBook) {
+          openBookModal(existingBook);
           // Disable inputs and hide submit button
           document.querySelectorAll('#book-form input, #book-form textarea').forEach(el => el.disabled = true);
           document.getElementById("book-form-submit").style.display = "none";
-        }).catch(err => showMessage("View failed: " + err.message));
+        } else {
+          // If not in memory, fetch from API
+          apiRequest(`/books/${id}`).then(book => {
+            // Add to books array for future use
+            if (!books.some(b => b.id === book.id)) {
+              books.push(book);
+            }
+            openBookModal(book);
+            // Disable inputs and hide submit button
+            document.querySelectorAll('#book-form input, #book-form textarea').forEach(el => el.disabled = true);
+            document.getElementById("book-form-submit").style.display = "none";
+          }).catch(err => showMessage("View failed: " + err.message));
+        }
       }
     };
 
@@ -376,7 +478,10 @@ function setupEventListeners() {
   };
 }
 
-// --- Init ---
+// --- Application Initialization ---
+/**
+ * Initialize the application when the page loads
+ */
 window.onload = function() {
   loadAuth();
   setupEventListeners();

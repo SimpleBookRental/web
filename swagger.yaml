@@ -68,26 +68,6 @@ definitions:
     - isbn
     - title
     type: object
-  github_com_SimpleBookRental_backend_internal_models.BookCreateRequest:
-    description: Book create with user request
-    properties:
-      author:
-        description: Book author
-        example: F. Scott Fitzgerald
-        type: string
-      description:
-        description: Book description
-        example: A classic novel
-        type: string
-      isbn:
-        description: Book ISBN
-        example: 978-1234567890
-        type: string
-      title:
-        description: Book title
-        example: The Great Gatsby
-        type: string
-    type: object
   github_com_SimpleBookRental_backend_internal_models.BookTransferRequest:
     description: Book transfer request
     properties:
@@ -283,38 +263,6 @@ info:
   title: Simple Book Rental API
   version: 1.0.0
 paths:
-  /api/v1/book-users:
-    post:
-      consumes:
-      - application/json
-      description: Create a book and associate it with a user
-      parameters:
-      - description: Book create with user payload
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.BookCreateRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.Book'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Create book with user
-      tags:
-      - Book-User Operations
   /api/v1/books:
     get:
       description: Get all books
